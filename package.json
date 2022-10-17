@@ -1,0 +1,19 @@
+{
+  "name": "utik",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/uTik.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord-rose": "^1.5.3",
+    "tslib": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.0"
+  }
+}
