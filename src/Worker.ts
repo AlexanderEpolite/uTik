@@ -11,13 +11,16 @@ const REGEX_A = /https:\/\/(www\.)?tiktok\.com\/t\/(\w+)/;
 //https://(www).tiktok.com/@user.name/video/123123123123
 const REGEX_B = /https:\/\/(www\.)?tiktok\.com\/@([a-zA-Z\d._-]+)\/video\/(\w+)/;
 
+//https://vm.tiktok.com/ABC123/
+const REGEX_C = /https:\/\/vm\.tiktok\.com\/(\w+)\//;
+
 worker.on("MESSAGE_CREATE", (msg) => {
     
     if(msg.author.bot) return;
     
     //check if the message contains a 'Tok link (note: the message
     //may contain text before or after the link)
-    const match = msg.content.match(REGEX_A) || msg.content.match(REGEX_B);
+    const match = msg.content.match(REGEX_A) || msg.content.match(REGEX_B) || msg.content.match(REGEX_C);
     if (!match) return;
     
     //get the link
