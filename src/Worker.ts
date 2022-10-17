@@ -25,6 +25,14 @@ worker.on("MESSAGE_CREATE", (msg) => {
     
     if(!link) return;
     
+    worker.api.messages.send(msg.channel_id, {
+        content: "This video is being de-Tok'd, please wait a few seconds...",
+    }).then(r => {
+        setTimeout(() => {
+            worker.api.messages.delete(msg.channel_id, r.id);
+        }, 5000);
+    });
+    
     Downloader.downloadVideo(link, msg.id).then((path) => {
         const buffer = readFileSync(path);
         worker.api.messages.sendFile(msg.channel_id, {
