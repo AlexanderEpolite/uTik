@@ -1,5 +1,7 @@
 # μTik
 
+![eyebrow](https://raw.githubusercontent.com/alexanderepolite/uTik/master/demo.png)
+
 Discord bot which automatically downloads TikTok videos when a TikTok link is posted in chat.
 
 ## Invite the bot
