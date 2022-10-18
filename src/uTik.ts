@@ -3,6 +3,7 @@
 import {Master} from "discord-rose";
 import { join } from "path";
 import {sync as commandExists} from "command-exists";
+import checkYTDLPVersion from "./util/checkYTDLPVersion";
 
 if(!commandExists("yt-dlp")) {
     console.error(`===================================================`);
@@ -12,6 +13,14 @@ if(!commandExists("yt-dlp")) {
     console.error(`===================================================`);
     process.exit(1);
 }
+
+checkYTDLPVersion().then((r) => {
+    if(!r) {
+        console.warn(`[WARNING]: Your yt-dlp is out of date!  Please consider updating to ensure everything works.`);
+    } else {
+        console.log(`yt-dlp is up-to-date!`);
+    }
+})
 
 const secrets = require("../secrets.json");
 
