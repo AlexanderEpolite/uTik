@@ -10,10 +10,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "command-exists": "^1.2.9",
     "discord-rose": "^1.5.3",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
+    "@types/command-exists": "^1.2.0",
     "@types/node": "^18.11.0"
   }
 }
