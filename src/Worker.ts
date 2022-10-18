@@ -67,3 +67,5 @@ worker.commands.prefix("/").add({
         options: [],
     },
 });
+
+worker.setStatus("watching" ,"for TikTok links", "online", "https://github.com/alexanderepolite/uTik");
