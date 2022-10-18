@@ -1,4 +1,3 @@
-
 import {Worker} from "discord-rose";
 import Downloader from "./util/Downloader";
 import {readFileSync} from "fs";
@@ -53,4 +52,18 @@ worker.on("MESSAGE_CREATE", (msg) => {
             }
         });
     });
+});
+
+const link = "https://discord.com/api/oauth2/authorize?client_id=1031412241083416576&permissions=0&scope=bot";
+
+worker.commands.prefix("/").add({
+    command: "invite",
+    exec: async (ctx): Promise<any> => {
+        await ctx.reply(`You can invite the bot using [this invite link](${link})`);
+    },
+    interaction: {
+        name: "invite",
+        description: "Get the invite link for this bot.",
+        options: [],
+    },
 });
