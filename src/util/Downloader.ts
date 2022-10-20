@@ -14,7 +14,7 @@ export default class Downloader {
     public static async downloadVideo(url: string, identifier: string): Promise<string> {
         
         //spawn a process for yt-dlp to download the video
-        const command  = `yt-dlp -o /tmp/${identifier}.mp4 -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4' ${url}`;
+        const command  = `yt-dlp -o /tmp/${identifier}.mp4 -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4' -S vcodec:h264 ${url}`;
         
         //i don't really care about the output.  when the process exits, the file is downloaded
         
