@@ -8,7 +8,9 @@ Discord bot which automatically downloads TikTok videos when a TikTok link is po
 
 You can invite the bot [using this link](https://discord.com/api/oauth2/authorize?client_id=1031412241083416576&permissions=0&scope=bot)
 
-## Usage
+## Self-hosting
+
+This part of the guide is for people who want to host an instance of the bot locally.
 
 Make sure [yt-dlp](https://github.com/yt-dlp/yt-dlp) is installed and accessible from the path.
 
@@ -19,4 +21,4 @@ Create `secrets.json` in the same directory as this file with the following data
 }
 ```
 
-Install dependencies with `npm i`, run, compile with `tsc`, and run `dist/uTik.js` to start the bot.
+Install dependencies with `npm i`, compile with `tsc`, and run `dist/uTik.js` to start the bot.
