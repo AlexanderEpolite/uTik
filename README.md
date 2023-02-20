@@ -14,6 +14,12 @@ This part of the guide is for people who want to host an instance of the bot loc
 
 Make sure [yt-dlp](https://github.com/yt-dlp/yt-dlp) is installed and accessible from the path.
 
+Also make sure that FFMPEG is installed and on the path:
+- Windows: Install FFMPEG from [Chocolatey](https://chocolatey.org/packages/ffmpeg)
+- MacOS: Install FFMPEG through [Brew](https://formulae.brew.sh/formula/ffmpeg)
+- Debian/Ubuntu-based: `apt install ffmpeg`
+- Other Linux Distros: find in your package manager.
+
 Create `secrets.json` in the same directory as this file with the following data:
 ```json
 {
