@@ -29,29 +29,28 @@ worker.on("MESSAGE_CREATE", (msg) => {
     
     worker.api.messages.send(msg.channel_id, {
         content: "This video is being de-Tok'd, please wait a few seconds...",
-    }).then(r => {
-        setTimeout(() => {
-            worker.api.messages.delete(msg.channel_id, r.id);
-        }, 5000);
+    }).then((r) => {
+        Downloader.downloadVideo(link, r.id, worker, msg.channel_id).then(async (path) => {
+            await worker.api.messages.delete(msg.channel_id, r.id);
+            const buffer = readFileSync(path);
+            await worker.api.messages.sendFile(msg.channel_id, {
+                buffer,
+                name: `uTik-${msg.id}.mp4`,
+            }, {
+                content: "A de-Tok'd version of this video has arrived",
+                message_reference: {
+                    channel_id: msg.channel_id,
+                    message_id: msg.id,
+                    fail_if_not_exists: true,
+                },
+                allowed_mentions: {
+                    parse: [],
+                }
+            });
+        });
+        
     });
     
-    Downloader.downloadVideo(link, msg.id).then((path) => {
-        const buffer = readFileSync(path);
-        worker.api.messages.sendFile(msg.channel_id, {
-            buffer,
-            name: `uTik-${msg.id}.mp4`,
-        }, {
-            content: "A de-tok'd version of this video has arrived",
-            message_reference: {
-                channel_id: msg.channel_id,
-                message_id: msg.id,
-                fail_if_not_exists: true,
-            },
-            allowed_mentions: {
-                parse: [],
-            }
-        });
-    });
 });
 
 const link = "https://discord.com/api/oauth2/authorize?client_id=1031412241083416576&permissions=0&scope=bot";

@@ -1,4 +1,6 @@
 import {exec} from "child_process";
+import {statSync} from "fs";
+import {Worker} from "discord-rose";
 
 export default class Downloader {
     
@@ -8,13 +10,18 @@ export default class Downloader {
      * Download a video from Tok
      * 
      * @param url the URL of the video
-     * @param identifier the identifier of the video
+     * @param identifier the identifier of the video (usually the message ID)
+     * @param worker the worker
+     * @param channel_id the channel ID
      * @returns {Promise<string>} a string prefaced with /tmp/ that is the path to the downloaded file
      */
-    public static async downloadVideo(url: string, identifier: string): Promise<string> {
+    public static async downloadVideo(url: string, identifier: string, worker: Worker, channel_id: string): Promise<string> {
+        
+        //remove the & and everything after it
+        url = url.split("&")[0] as string;
         
         //spawn a process for yt-dlp to download the video
-        const command  = `yt-dlp -o /tmp/${identifier}.mp4 -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4' -S vcodec:h264 ${url}`;
+        const command  = `yt-dlp -o /tmp/${identifier}.mp4 -f 'mp4' -S vcodec:h264 ${url}`;
         
         //i don't really care about the output.  when the process exits, the file is downloaded
         
@@ -23,7 +30,24 @@ export default class Downloader {
                 if(error) {
                     reject(error);
                 }
-                resolve(`/tmp/${identifier}.mp4`);
+                
+                //get the size of the file
+                const stats = statSync(`/tmp/${identifier}.mp4`);
+                
+                //if file is greater than 7.9MB, compress it
+                if(stats.size > 8192000) {
+                    worker.api.messages.edit(channel_id, identifier, "Compressing video (this may take a few seconds)");
+                    exec(`ffmpeg -i /tmp/${identifier}.mp4 -c:v libx264 -crf 30 -preset slow /tmp/${identifier}-cr.mp4`, (error) => {
+                        if(error) {
+                            reject(error);
+                        }
+                        
+                        resolve(`/tmp/${identifier}-cr.mp4`);
+                    });
+                } else {
+                    resolve(`/tmp/${identifier}.mp4`);
+                }
+                
             });
         });
     }

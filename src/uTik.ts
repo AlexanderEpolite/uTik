@@ -1,7 +1,7 @@
 #!
 
 import {Master} from "discord-rose";
-import { join } from "path";
+import {join} from "path";
 import {sync as commandExists} from "command-exists";
 import checkYTDLPVersion from "./util/checkYTDLPVersion";
 
@@ -20,7 +20,7 @@ checkYTDLPVersion().then((r) => {
     } else {
         console.log(`yt-dlp is up-to-date!`);
     }
-})
+});
 
 const secrets = require("../secrets.json");
 
