@@ -7,12 +7,12 @@ export default class Downloader {
     private constructor() {}
     
     /**
-     * Download a video from Tok
+     * Download a video from TT or other sites.
      * 
-     * @param url the URL of the video
-     * @param identifier the identifier of the video (usually the message ID)
-     * @param worker the worker
-     * @param channel_id the channel ID
+     * @param url {string} the URL of the video
+     * @param identifier {string} the identifier of the video (usually the message ID)
+     * @param worker {Worker} the worker
+     * @param channel_id {string} the channel ID
      * @returns {Promise<string>} a string prefaced with /tmp/ that is the path to the downloaded file
      */
     public static async downloadVideo(url: string, identifier: string, worker: Worker, channel_id: string): Promise<string> {

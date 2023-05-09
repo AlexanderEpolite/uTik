@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node-fetch": "^2.6.2",
+    "@types/node-fetch": "^2.6.3",
     "command-exists": "^1.2.9",
     "discord-rose": "^1.5.3",
     "node-fetch": "2",
