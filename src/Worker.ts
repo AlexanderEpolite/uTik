@@ -102,7 +102,7 @@ worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
 });
 
 //public bot invite link
-const link = "https://discord.com/api/oauth2/authorize?client_id=1031412241083416576&permissions=0&scope=bot";
+const link = "https://discord.com/api/oauth2/authorize?client_id=1031412241083416576&permissions=274878007296&scope=bot";
 
 //commands
 worker.commands.prefix("/").add({

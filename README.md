@@ -8,7 +8,7 @@ Discord bot which automatically downloads TikTok videos when a TikTok link is po
 
 ## Invite the bot
 
-You can invite the bot [using this link](https://discord.com/api/oauth2/authorize?client_id=1031412241083416576&permissions=0&scope=bot)
+You can invite the bot [using this link](https://discord.com/api/oauth2/authorize?client_id=1031412241083416576&permissions=274878007296&scope=bot)
 
 ## Self-hosting
 
