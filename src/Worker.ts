@@ -24,11 +24,11 @@ const YT_SHORT_REGEX = /https:\/\/(www\.)?youtube\.com\/shorts\/([A-Za-z0-9_-]{1
 //the username does not use the @ symbol.  thank you FB for making it easy to make a regex :)
 //TECHNICALLY... instagram usernames cannot contain two sequential periods... but it's fine for this
 //not sure how long the number portion is supposed to be, but the ones i tested were 19 numbers.  future-proof.
-const INSTAGRAM_STORY = /https:\/\/(www\.)?instagram\.com\/stories\/([A-Za-z0-9\-_\.]){2,30}\/([0-9]){2,30}/;
+// const INSTAGRAM_STORY = /https:\/\/(www\.)?instagram\.com\/stories\/([A-Za-z0-9\-_\.]){2,30}\/([0-9]){2,30}/;
 
 //thankfully videos and normal posts are separate.  i'm pretty sure that multi-video posts are regular posts...
 //https://www.instagram.com/reel/Cp_NdZoPuao
-const INSTAGRAM_VIDEO_POST = /https:\/\/(www\.)?instagram\.com\/reel\/([A-Za-z0-9\-_]){5,30}/;
+// const INSTAGRAM_VIDEO_POST = /https:\/\/(www\.)?instagram\.com\/reel\/([A-Za-z0-9\-_]){5,30}/;
 
 
 worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
@@ -40,9 +40,9 @@ worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
     const match = msg.content.match(REGEX_A)
         || msg.content.match(REGEX_B)
         || msg.content.match(REGEX_C)
-        || msg.content.match(YT_SHORT_REGEX)
-        || msg.content.match(INSTAGRAM_STORY)
-        || msg.content.match(INSTAGRAM_VIDEO_POST);
+        || msg.content.match(YT_SHORT_REGEX);
+        // || msg.content.match(INSTAGRAM_STORY)
+        // || msg.content.match(INSTAGRAM_VIDEO_POST);
     
     if(!match) return;
     
@@ -127,4 +127,4 @@ worker.commands.prefix("/").add({
 });
 
 //set the bot status
-worker.setStatus("watching" ,"for TikTok/IG/YT links", "online", "https://github.com/alexanderepolite/uTik");
+worker.setStatus("streaming" ,"TikTok/YT Short links", "online", "https://utik.me/?ref=discord");
