@@ -4,7 +4,7 @@
 
 Discord bot which automatically downloads TikTok videos when a TikTok link is posted in chat.
 
-## Now supporting Instagram and YT Short URLs!
+## Now supporting YouTube Short URLs!
 
 ## Invite the bot
 
