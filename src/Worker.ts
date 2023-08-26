@@ -21,21 +21,15 @@ const YT_SHORT_REGEX = /https:\/\/(www\.)?youtube\.com\/shorts\/([A-Za-z0-9_-]{1
 
 //instagram
 //https://instagram.com/stories/<user>/<a bunch of numbers>
-//the username does not use the @ symbol.  thank you FB for making it easy to make a regex :)
-//TECHNICALLY... instagram usernames cannot contain two sequential periods... but it's fine for this
-//not sure how long the number portion is supposed to be, but the ones i tested were 19 numbers.  future-proof.
 const INSTAGRAM_STORY = /https:\/\/(www\.)?instagram\.com\/stories\/([A-Za-z0-9\-_\.]){2,30}\/([0-9]){2,30}/;
 
-//thankfully videos and normal posts are separate.  i'm pretty sure that multi-video posts are regular posts...
 //https://www.instagram.com/reel/Cp_NdZoPuao
 const INSTAGRAM_VIDEO_POST = /https:\/\/(www\.)?instagram\.com\/reel\/([A-Za-z0-9\-_]){5,30}/;
 
-function download(link: string, channel_id: string, msg_id: string, initial_message_id: string, delete_original: boolean, verb: string) {
+function download(link: string, channel_id: string, msg_id: string, initial_message_id: string, verb: string) {
     Downloader.downloadVideo((link as string), initial_message_id, worker, channel_id).then(async (path) => {
         
-        if(delete_original) {
-            await worker.api.messages.delete(channel_id, initial_message_id);
-        }
+        await worker.api.messages.delete(channel_id, initial_message_id);
         
         const buffer = readFileSync(path);
         await worker.api.messages.sendFile(channel_id, {
@@ -98,7 +92,7 @@ worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
         content: `This video is being ${verb}, please wait a few seconds...`,
     }).then((r) => {
         link = link as string;
-        download(link, r.channel_id, msg.id, r.id, (!link.includes("instagram")), verb);
+        download(link, r.channel_id, msg.id, r.id, verb);
     }).catch((reason) => {
         console.log(`could not download: ${reason}`);
     });
