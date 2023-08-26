@@ -13,10 +13,9 @@ export default class Downloader {
      * @param identifier {string} the identifier of the video (usually the message ID)
      * @param worker {Worker} the worker
      * @param channel_id {string} the channel ID
-     * @param crop {boolean} true/false to crop the video
      * @returns {Promise<string>} a string prefaced with /tmp/ that is the path to the downloaded file
      */
-    public static async downloadVideo(url: string, identifier: string, worker: Worker, channel_id: string, crop: boolean): Promise<string> {
+    public static async downloadVideo(url: string, identifier: string, worker: Worker, channel_id: string): Promise<string> {
         
         //remove the & and everything after it
         url = url.split("&")[0] as string;
@@ -32,31 +31,21 @@ export default class Downloader {
                     reject(error);
                 }
                 
-                if(crop) {
-                    exec(`ffmpeg -i /tmp/${identifier}.mp4 -ss 1 -t 1 -vf cropdetect -f null - 2>&1 | awk '/crop/ { print $NF }' | tail -1`, (error, stdout) => {
-                        if(error) reject(error);
+                //get the size of the file
+                const stats = statSync(`/tmp/${identifier}.mp4`);
+                
+                //if file is greater than 24MB, compress it
+                if(stats.size > 25165820) {
+                    worker.api.messages.edit(channel_id, identifier, "Compressing video (this may take a few seconds)");
+                    exec(`ffmpeg -i /tmp/${identifier}.mp4 -c:v libx264 -crf 30 -preset slow /tmp/${identifier}-cr.mp4`, (error) => {
+                        if(error) {
+                            reject(error);
+                        }
                         
-                        exec(`ffmpeg -i /tmp/${identifier}.mp4 -vf "${stdout}" /tmp/${identifier}-crop.mp4`, (error) => {
-                            if(error) reject(error);
-                            
-                            //get the size of the file
-                            const stats = statSync(`/tmp/${identifier}-crop.mp4`);
-                            
-                            //if file is greater than 24MB, compress it
-                            if(stats.size > 25165820) {
-                                worker.api.messages.edit(channel_id, identifier, "Compressing video (this may take a few seconds)");
-                                exec(`ffmpeg -i /tmp/${identifier}-crop.mp4 -c:v libx264 -crf 30 -preset slow /tmp/${identifier}-cr.mp4`, (error) => {
-                                    if(error) {
-                                        reject(error);
-                                    }
-                                    
-                                    resolve(`/tmp/${identifier}-cr.mp4`);
-                                });
-                            } else {
-                                resolve(`/tmp/${identifier}-crop.mp4`);
-                            }
-                        });
+                        resolve(`/tmp/${identifier}-cr.mp4`);
                     });
+                } else {
+                    resolve(`/tmp/${identifier}.mp4`);
                 }
                 
             });

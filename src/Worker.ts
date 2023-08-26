@@ -26,8 +26,8 @@ const INSTAGRAM_STORY = /https:\/\/(www\.)?instagram\.com\/stories\/([A-Za-z0-9\
 //https://www.instagram.com/reel/Cp_NdZoPuao
 const INSTAGRAM_VIDEO_POST = /https:\/\/(www\.)?instagram\.com\/reel\/([A-Za-z0-9\-_]){5,30}/;
 
-function download(link: string, channel_id: string, msg_id: string, initial_message_id: string, verb: string, crop: boolean) {
-    Downloader.downloadVideo((link as string), initial_message_id, worker, channel_id, crop).then(async (path) => {
+function download(link: string, channel_id: string, msg_id: string, initial_message_id: string, verb: string) {
+    Downloader.downloadVideo((link as string), initial_message_id, worker, channel_id).then(async (path) => {
         
         await worker.api.messages.delete(channel_id, initial_message_id);
         
@@ -92,7 +92,7 @@ worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
         content: `This video is being ${verb}, please wait a few seconds...`,
     }).then((r) => {
         link = link as string;
-        download(link, r.channel_id, msg.id, r.id, verb, (msg.content.toLowerCase().includes("crop")));
+        download(link, r.channel_id, msg.id, r.id, verb);
     }).catch((reason) => {
         console.log(`could not download: ${reason}`);
     });
