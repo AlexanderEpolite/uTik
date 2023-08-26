@@ -24,12 +24,31 @@ const YT_SHORT_REGEX = /https:\/\/(www\.)?youtube\.com\/shorts\/([A-Za-z0-9_-]{1
 //the username does not use the @ symbol.  thank you FB for making it easy to make a regex :)
 //TECHNICALLY... instagram usernames cannot contain two sequential periods... but it's fine for this
 //not sure how long the number portion is supposed to be, but the ones i tested were 19 numbers.  future-proof.
-// const INSTAGRAM_STORY = /https:\/\/(www\.)?instagram\.com\/stories\/([A-Za-z0-9\-_\.]){2,30}\/([0-9]){2,30}/;
+const INSTAGRAM_STORY = /https:\/\/(www\.)?instagram\.com\/stories\/([A-Za-z0-9\-_\.]){2,30}\/([0-9]){2,30}/;
 
 //thankfully videos and normal posts are separate.  i'm pretty sure that multi-video posts are regular posts...
 //https://www.instagram.com/reel/Cp_NdZoPuao
-// const INSTAGRAM_VIDEO_POST = /https:\/\/(www\.)?instagram\.com\/reel\/([A-Za-z0-9\-_]){5,30}/;
+const INSTAGRAM_VIDEO_POST = /https:\/\/(www\.)?instagram\.com\/reel\/([A-Za-z0-9\-_]){5,30}/;
 
+function download(link: string, channel_id: string, msg_id: string, initial_message_id: string, delete_original: boolean, verb: string) {
+    Downloader.downloadVideo((link as string), initial_message_id, worker, channel_id).then(async (path) => {
+        
+        if(delete_original) {
+            await worker.api.messages.delete(channel_id, initial_message_id);
+        }
+        
+        const buffer = readFileSync(path);
+        await worker.api.messages.sendFile(channel_id, {
+            buffer,
+            name: `www.uTik.me-${`${msg_id}`.substring(0, 6)}.mp4`,
+        }, {
+            content: `A ${verb} version of this video has arrived`,
+            allowed_mentions: {
+                parse: [],
+            }
+        });
+    });
+}
 
 worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
     
@@ -40,25 +59,27 @@ worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
     const match = msg.content.match(REGEX_A)
         || msg.content.match(REGEX_B)
         || msg.content.match(REGEX_C)
-        || msg.content.match(YT_SHORT_REGEX);
-        // || msg.content.match(INSTAGRAM_STORY)
-        // || msg.content.match(INSTAGRAM_VIDEO_POST);
+        || msg.content.match(YT_SHORT_REGEX)
+        || msg.content.match(INSTAGRAM_STORY)
+        || msg.content.match(INSTAGRAM_VIDEO_POST);
     
     if(!match) return;
     
     //get the link
-    const link = match[0];
+    let link = match[0];
     
     if(!link) return;
     
     if(link.includes("youtube")) {
+        
+        //youtube auto-redirects short links to be www.youtube.com instead of the bare URL.
+        if(link.startsWith("https://youtube.com/shorts")) {
+            link = link.replace("https://youtube.com", "https://www.youtube.com");
+        }
+        
         if(!await checkYTShort(link)) {
             return await worker.api.messages.send(msg.channel_id, "This does not appear to be a real YouTube Short URL.");
         }
-    }
-    
-    if(link.includes("instagram")) {
-        await worker.api.messages.send(msg.channel_id, "Instagram downloads are experimental and may not work!");
     }
     
     let verb: string;
@@ -76,39 +97,22 @@ worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
     worker.api.messages.send(msg.channel_id, {
         content: `This video is being ${verb}, please wait a few seconds...`,
     }).then((r) => {
-        Downloader.downloadVideo(link, r.id, worker, msg.channel_id).then(async (path) => {
-            await worker.api.messages.delete(msg.channel_id, r.id);
-            const buffer = readFileSync(path);
-            await worker.api.messages.sendFile(msg.channel_id, {
-                buffer,
-                name: `www.uTik.me-${`${msg.id}`.substring(0, 6)}.mp4`,
-            }, {
-                content: `A ${verb} version of this video has arrived`,
-                message_reference: {
-                    channel_id: msg.channel_id,
-                    message_id: msg.id,
-                    fail_if_not_exists: true,
-                },
-                allowed_mentions: {
-                    parse: [],
-                }
-            });
-        });
-        
+        link = link as string;
+        download(link, r.channel_id, msg.id, r.id, (!link.includes("instagram")), verb);
     }).catch((reason) => {
-        console.log(`could not download ${link}: ${reason}`);
+        console.log(`could not download: ${reason}`);
     });
     
 });
 
 //public bot invite link
-const link = "https://discord.com/api/oauth2/authorize?client_id=1031412241083416576&permissions=274878007296&scope=bot";
+const invite_link = "https://discord.com/api/oauth2/authorize?client_id=1031412241083416576&permissions=274878007296&scope=bot";
 
 //commands
 worker.commands.prefix("/").add({
     command: "invite",
     exec: async (ctx): Promise<any> => {
-        await ctx.reply(`You can invite the bot using [this invite link](${link})`);
+        await ctx.reply(`You can invite the bot using [this invite link](${invite_link})`);
     },
     interaction: {
         name: "invite",
@@ -127,4 +131,4 @@ worker.commands.prefix("/").add({
 });
 
 //set the bot status
-worker.setStatus("streaming" ,"TikTok/YT Short links", "online", "https://utik.me/?ref=discord");
+worker.setStatus("listening" ,"TikTok/YT/Insta Links", "online");
