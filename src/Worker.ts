@@ -41,7 +41,9 @@ function download(link: string, channel_id: string, msg_id: string, initial_mess
         try {
             //I would have a variable indicating if this should delete the message...
             //unfortunately JavaScript asynchronous functions do not like that, so here we are.
-            await worker.api.messages.delete(channel_id, initial_message_id as string);
+            worker.api.messages.delete(channel_id, initial_message_id as string)
+                .catch(() => {})
+                .then(() => {});
         } catch(e) {}
         
         const buffer = readFileSync(path);
