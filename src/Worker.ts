@@ -25,12 +25,25 @@ const YT_SHORT_REGEX = /https:\/\/(www\.)?youtube\.com\/shorts\/([A-Za-z0-9_-]{1
 const INSTAGRAM_STORY = /https:\/\/(www\.)?instagram\.com\/stories\/([A-Za-z0-9\-_\.]){2,30}\/([0-9]){2,30}/;
 
 //https://www.instagram.com/reel/Cp_NdZoPuao
-const INSTAGRAM_VIDEO_POST = /https:\/\/(www\.)?instagram\.com\/reel\/([A-Za-z0-9\-_]){5,30}/;
+const INSTAGRAM_VIDEO_POST = /https:\/\/(www\.)?instagram\.com\/reel\/([A-Za-z0-9\-_]){5,30}(\/)?/;
 
-function download(link: string, channel_id: string, msg_id: string, initial_message_id: string, verb: string, crop: boolean) {
+//https://www.instagram.com/p/Cp_NdZoPuao/
+const INSTAGRAM_POST = /https:\/\/(www\.)?instagram\.com\/p\/([A-Za-z0-9\-_]){5,30}(\/)?/;
+
+function download(link: string, channel_id: string, msg_id: string, initial_message_id: string | undefined, verb: string, crop: boolean) {
+    
+    let delete_original: boolean = true;
+    
+    if(!initial_message_id) {
+        initial_message_id = "" + Math.random() + "" + Math.random();
+        delete_original = false;
+    }
+    
     Downloader.downloadVideo((link as string), initial_message_id, worker, channel_id, crop).then(async (path) => {
         
-        await worker.api.messages.delete(channel_id, initial_message_id);
+        if(delete_original) {
+            await worker.api.messages.delete(channel_id, initial_message_id as string);
+        }
         
         const buffer = readFileSync(path);
         await worker.api.messages.sendFile(channel_id, {
@@ -51,7 +64,8 @@ function matchLink(link: string) {
         || link.match(REGEX_C)
         || link.match(YT_SHORT_REGEX)
         || link.match(INSTAGRAM_STORY)
-        || link.match(INSTAGRAM_VIDEO_POST);
+        || link.match(INSTAGRAM_VIDEO_POST)
+        || link.match(INSTAGRAM_POST);
 }
 
 async function checkAndDownload(content: string, channel_id: string, message_id: string, crop: boolean): Promise<boolean> {
@@ -66,6 +80,17 @@ async function checkAndDownload(content: string, channel_id: string, message_id:
     let link = match[0];
     
     if(!link) return false;
+    
+    let download_notify = true;
+    
+    if(link.includes("instagram")) {
+        crop = !content.includes("nocrop");
+        
+        if(link.includes("/p/")) {
+            link = link.replace("/p/", "/reel/");
+            download_notify = false;
+        }
+    }
     
     if(link.includes("youtube")) {
         
@@ -92,17 +117,35 @@ async function checkAndDownload(content: string, channel_id: string, message_id:
         verb = "de-Tok'd";
     }
     
-    worker.api.messages.send(channel_id, {
-        content: `This video is being ${verb}, please wait a few seconds...`,
-    }).then((r) => {
-        link = link as string;
-        download(link, r.channel_id, message_id, r.id, verb, crop);
-    }).catch((reason) => {
-        console.log(`could not download: ${reason}`);
-    });
+    // worker.api.messages.send(channel_id, {
+    //     content: `This video is being ${verb}, please wait a few seconds...`,
+    // }).then((r) => {
+    //     link = link as string;
+    //     download(link, r.channel_id, message_id, r.id, verb, crop);
+    // }).catch((reason) => {
+    //     console.log(`could not download: ${reason}`);
+    // });
+    
+    try {
+        //do not notify on normal IG post links because all
+        //the /reel/ links are /p/, but not all /p/ are /reel/.
+        
+        let bot_message_id: string | undefined = undefined;
+        
+        if(download_notify) {
+            const r = await worker.api.messages.send(channel_id, {
+                content: `This video is being ${verb}, please wait a few seconds...`,
+            });
+            
+            bot_message_id = r.id;
+        }
+        
+        download(link, channel_id, message_id, bot_message_id, verb, crop);
+    } catch(e) {
+        console.log(`could not download: ${e}`);
+    }
     
     return true;
-    
 }
 
 worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
