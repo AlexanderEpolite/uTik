@@ -145,7 +145,7 @@ worker.commands.prefix("/").add({
         
         await ctx.reply("Processing.  A video will be posted in this channel shortly!");
         
-        const r = await checkAndDownload(link, ctx.channel.id, ctx.message.id, true);
+        const r = await checkAndDownload(link, ctx.channel.id, ctx.interaction.id, true);
         
         if(!r) {
             return await worker.api.messages.send(ctx.channel.id, "Unable to download and crop this video :(");
