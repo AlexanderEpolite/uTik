@@ -3,32 +3,9 @@ import Downloader from "./util/Downloader";
 import {readFileSync} from "fs";
 import checkYTShort from "./util/checkYTShort";
 import {ApplicationCommandOptionType} from "discord-api-types";
+import matchLink from "./util/matchLink";
 
 const worker = new Worker();
-
-//https://(www).tiktok.com/t/abc123zyx
-const REGEX_A = /https:\/\/(www\.)?tiktok\.com\/t\/(\w+)/;
-
-//https://(www).tiktok.com/@user.name/video/123123123123
-const REGEX_B = /https:\/\/(www\.)?tiktok\.com\/@([a-zA-Z\d._-]+)\/video\/(\w+)/;
-
-//https://vm.tiktok.com/ABC123/
-const REGEX_C = /https:\/\/vm\.tiktok\.com\/(\w+)\//;
-
-
-//youtube shorts
-//https://www.youtube.com/shorts/hJGtSwpOddQ
-const YT_SHORT_REGEX = /https:\/\/(www\.)?youtube\.com\/shorts\/([A-Za-z0-9_-]{11})/;
-
-//instagram
-//https://instagram.com/stories/<user>/<a bunch of numbers>
-const INSTAGRAM_STORY = /https:\/\/(www\.)?instagram\.com\/stories\/([A-Za-z0-9\-_\.]){2,30}\/([0-9]){2,30}/;
-
-//https://www.instagram.com/reel/Cp_NdZoPuao
-const INSTAGRAM_VIDEO_POST = /https:\/\/(www\.)?instagram\.com\/reel\/([A-Za-z0-9\-_]){5,30}(\/)?/;
-
-//https://www.instagram.com/p/Cp_NdZoPuao/
-const INSTAGRAM_POST = /https:\/\/(www\.)?instagram\.com\/p\/([A-Za-z0-9\-_]){5,30}(\/)?/;
 
 function download(link: string, channel_id: string, msg_id: string, initial_message_id: string | undefined, verb: string, crop: boolean) {
     
@@ -59,15 +36,7 @@ function download(link: string, channel_id: string, msg_id: string, initial_mess
     });
 }
 
-function matchLink(link: string) {
-    return link.match(REGEX_A)
-        || link.match(REGEX_B)
-        || link.match(REGEX_C)
-        || link.match(YT_SHORT_REGEX)
-        || link.match(INSTAGRAM_STORY)
-        || link.match(INSTAGRAM_VIDEO_POST)
-        || link.match(INSTAGRAM_POST);
-}
+
 
 async function checkAndDownload(content: string, channel_id: string, message_id: string, crop: boolean): Promise<boolean> {
     //check if the message contains a 'Tok link (note: the message
@@ -85,8 +54,13 @@ async function checkAndDownload(content: string, channel_id: string, message_id:
     let download_notify = true;
     
     if(link.includes("instagram")) {
+        //auto-crop IG links unless the message contains "nocrop"
         crop = !content.includes("nocrop");
         
+        //replace /p/ with /reel/.  If this is a normal post, it will not
+        //download.  If it is really a video, it will download, but don't
+        //notify the user since it may not be a real post.  Might change
+        //this function later to detect videos and reels from normal posts
         if(link.includes("/p/")) {
             link = link.replace("/p/", "/reel/");
             download_notify = false;
@@ -118,21 +92,13 @@ async function checkAndDownload(content: string, channel_id: string, message_id:
         verb = "de-Tok'd";
     }
     
-    // worker.api.messages.send(channel_id, {
-    //     content: `This video is being ${verb}, please wait a few seconds...`,
-    // }).then((r) => {
-    //     link = link as string;
-    //     download(link, r.channel_id, message_id, r.id, verb, crop);
-    // }).catch((reason) => {
-    //     console.log(`could not download: ${reason}`);
-    // });
-    
     try {
         //do not notify on normal IG post links because all
         //the /reel/ links are /p/, but not all /p/ are /reel/.
         
         let bot_message_id: string | undefined = undefined;
         
+        //notify the user that the download has started
         if(download_notify) {
             const r = await worker.api.messages.send(channel_id, {
                 content: `This video is being ${verb}, please wait a few seconds...`,
@@ -141,6 +107,7 @@ async function checkAndDownload(content: string, channel_id: string, message_id:
             bot_message_id = r.id;
         }
         
+        //download the video.  This will handle editing and notifying
         download(link, channel_id, message_id, bot_message_id, verb, crop);
     } catch(e) {
         console.log(`could not download: ${e}`);
@@ -183,6 +150,8 @@ worker.commands.prefix("/").add({
     command: "crop",
     exec: async (ctx): Promise<any> => {
         
+        //crop non-IG videos.  IG videos are cropped automatically.
+        
         if(!ctx.guild || !ctx.channel) return;
         
         const link = ctx.options["link"];
@@ -210,4 +179,4 @@ worker.commands.prefix("/").add({
 });
 
 //set the bot status
-worker.setStatus("listening" ,"TikTok/YT/Insta Links", "online");
+worker.setStatus("watching" ,"TikTok/YT/Insta Links", "online");

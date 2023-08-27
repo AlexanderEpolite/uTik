@@ -2,9 +2,9 @@
 
 ![eyebrow](https://raw.githubusercontent.com/alexanderepolite/uTik/master/demo.png)
 
-Discord bot which automatically downloads TikTok videos when a TikTok link is posted in chat.
+Discord bot which automatically downloads TikTok/YT Short/Instagram videos when a TikTok link is posted in chat.
 
-## Now supporting YouTube Short URLs!
+## Now supporting YouTube Short and Instagram URLs!
 
 ## Invite the bot
 

@@ -1,8 +1,12 @@
 import fetch from "node-fetch";
 
 /**
+ * Check to see if this is a real short or a normal video with the short prefix.
  * 
- * @param url
+ * This can be tested using redirects.  YT always uses the "www" prefix, so
+ * make sure that the url contains this or else real shorts will be marked.
+ * 
+ * @param url {string} the URL of the video
  * @returns {boolean} true if the video should be downloaded, false otherwise.
  */
 export default async function checkYTShort(url: string): Promise<boolean> {

@@ -2,6 +2,11 @@ import {exec} from "child_process";
 
 const fetch = require("node-fetch");
 
+/**
+ * Check the current yt-dlp version to make sure that it is up-to-date
+ * 
+ * @returns {boolean} true if it is up to date, false otherwise.
+ */
 export default async function(): Promise<boolean> {
     return new Promise(async (resolve, reject) => {
         
