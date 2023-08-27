@@ -33,10 +33,12 @@ export default class Downloader {
                 }
                 
                 if(crop) {
-                    const command = `ffmpeg -i /tmp/${identifier} -t 1 -vf cropdetect -f null - 2>&1 | awk '/crop/ { print $NF }' | tail -1`;
+                    const command = `ffmpeg -i /tmp/${identifier} -t 1 -vf cropdetect -f null - | awk '/crop/ { print $NF }' | tail -1`;
                     
-                    exec(command, (error, stdout) => {
-                        if(error) reject(error);
+                    exec(command, (_error, stdout) => {
+                        
+                        //apparently the program exits with an error code on success...
+                        
                         worker.api.messages.edit(channel_id, identifier, "Cropping video (this may take a few seconds)");
                         exec(`ffmpeg -i /tmp/${identifier}.mp4 -vf "${stdout}" /tmp/${identifier}-crop.mp4`, (error) => {
                             if(error) {
