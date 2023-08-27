@@ -61,7 +61,7 @@ export default class Downloader {
                 
                 //if file is greater than 24MB, compress it
                 if(stats.size > 25165820) {
-                    worker.api.messages.edit(channel_id, identifier, "Compressing video (this may take a few seconds)");
+                    !identifier.includes(".") && worker.api.messages.edit(channel_id, identifier, "Compressing video (this may take a few seconds)");
                     exec(`ffmpeg -i /tmp/${identifier}.mp4 -c:v libx264 -crf 30 -preset slow /tmp/${identifier}-cr.mp4`, (error) => {
                         if(error) {
                             reject(error);
