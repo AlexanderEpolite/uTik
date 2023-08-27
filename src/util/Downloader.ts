@@ -33,12 +33,13 @@ export default class Downloader {
                 }
                 
                 if(crop) {
-                    execFile("./cropper.bash", [identifier], (_error, stdout) => {
+                    execFile("./cropper.bash", [identifier], (_error, stdout, stderr) => {
                         
                         //apparently the program exits with an error code on success...
                         // if(error) reject(error);
-                        
+                        console.log(`error: ${error}`);
                         console.log(`stdout: ${stdout}`);
+                        console.log(`stderr: ${stderr}`);
                         
                         worker.api.messages.edit(channel_id, identifier, "Cropping video (this may take a few seconds)");
                         exec(`ffmpeg -i /tmp/${identifier}.mp4 -vf "${stdout}" /tmp/${identifier}-crop.mp4`, (error) => {
