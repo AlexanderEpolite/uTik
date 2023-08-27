@@ -1,6 +1,7 @@
-import {exec, execFileSync, spawnSync} from "child_process";
+import {exec, execFileSync} from "child_process";
 import {statSync} from "fs";
 import {Worker} from "discord-rose";
+import {join} from "path";
 
 export default class Downloader {
     
@@ -34,7 +35,7 @@ export default class Downloader {
                 
                 if(crop) {
                     
-                    const spawnpath = require.main?.path + "/cropper.bash";
+                    const spawnpath = join(require.main?.path as string, "..", "cropper.bash");
                     console.log(`spawnpath: ${spawnpath}`);
                     
                     const sp = execFileSync(spawnpath, [identifier]).toString();
