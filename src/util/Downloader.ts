@@ -1,4 +1,4 @@
-import {exec, execFile} from "child_process";
+import {exec, execFile, spawnSync} from "child_process";
 import {statSync} from "fs";
 import {Worker} from "discord-rose";
 
@@ -33,22 +33,22 @@ export default class Downloader {
                 }
                 
                 if(crop) {
-                    execFile("./cropper.bash", [identifier], (_error, stdout, stderr) => {
+                    
+                    const sp = spawnSync((require.main?.path + "/cropper.bash"), [identifier]);
+                    
+                    //apparently the program exits with an error code on success...
+                    // if(error) reject(error);
+                    console.log(`error: ${error}`);
+                    console.log(`stdout: ${sp.stdout}`);
+                    console.log(`stderr: ${sp.stderr}`);
+                    
+                    worker.api.messages.edit(channel_id, identifier, "Cropping video (this may take a few seconds)");
+                    exec(`ffmpeg -i /tmp/${identifier}.mp4 -vf "${sp.stdout}" /tmp/${identifier}-crop.mp4`, (error) => {
+                        if(error) {
+                            reject(error);
+                        }
                         
-                        //apparently the program exits with an error code on success...
-                        // if(error) reject(error);
-                        console.log(`error: ${error}`);
-                        console.log(`stdout: ${stdout}`);
-                        console.log(`stderr: ${stderr}`);
-                        
-                        worker.api.messages.edit(channel_id, identifier, "Cropping video (this may take a few seconds)");
-                        exec(`ffmpeg -i /tmp/${identifier}.mp4 -vf "${stdout}" /tmp/${identifier}-crop.mp4`, (error) => {
-                            if(error) {
-                                reject(error);
-                            }
-                            
-                            resolve(`/tmp/${identifier}-crop.mp4`);
-                        });
+                        resolve(`/tmp/${identifier}-crop.mp4`);
                     });
                     
                     return;
