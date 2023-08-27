@@ -44,7 +44,7 @@ export default class Downloader {
                     // if(error) reject(error);
                     console.log(`out: ${sp}`);
                     
-                    worker.api.messages.edit(channel_id, identifier, "Cropping video (this may take a few seconds)");
+                    !identifier.includes(".") && worker.api.messages.edit(channel_id, identifier, "Cropping video (this may take a few seconds)");
                     exec(`ffmpeg -i /tmp/${identifier}.mp4 -vf "${sp}" /tmp/${identifier}-crop.mp4`, (error) => {
                         if(error) {
                             reject(error);
