@@ -32,18 +32,17 @@ const INSTAGRAM_POST = /https:\/\/(www\.)?instagram\.com\/p\/([A-Za-z0-9\-_]){5,
 
 function download(link: string, channel_id: string, msg_id: string, initial_message_id: string | undefined, verb: string, crop: boolean) {
     
-    let delete_original: boolean = true;
-    
     if(!initial_message_id) {
         initial_message_id = "" + Math.random() + "" + Math.random();
-        delete_original = false;
     }
     
     Downloader.downloadVideo((link as string), initial_message_id, worker, channel_id, crop).then(async (path) => {
         
-        if(delete_original) {
+        try {
+            //I would have a variable indicating if this should delete the message...
+            //unfortunately JavaScript asynchronous functions do not like that, so here we are.
             await worker.api.messages.delete(channel_id, initial_message_id as string);
-        }
+        } catch(e) {}
         
         const buffer = readFileSync(path);
         await worker.api.messages.sendFile(channel_id, {
