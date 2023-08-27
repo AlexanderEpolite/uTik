@@ -38,11 +38,21 @@ export default class Downloader {
                     const spawnpath = join(require.main?.path as string, "..", "cropper.bash");
                     console.log(`spawnpath: ${spawnpath}`);
                     
-                    const sp = execFileSync(spawnpath, [identifier]).toString();
+                    let sp = execFileSync(spawnpath, [identifier]).toString();
                     
                     //apparently the program exits with an error code on success...
                     // if(error) reject(error);
                     console.log(`out: ${sp}`);
+                    
+                    //subtract 5 pixels from the four dimensions for padding (unless its 4 or less)
+                    let v = sp.split("=")[1]?.split(":") as string[];
+                    
+                    for(let i = 0; i < v.length; i++) {
+                        v[i] = "" + Math.max(Number(v[i]) - 5, 0);
+                    }
+                    
+                    //new pixel ranges
+                    sp = "crop=" + v.join(":");
                     
                     !identifier.includes(".") && worker.api.messages.edit(channel_id, identifier, "Cropping video (this may take a few seconds)");
                     exec(`ffmpeg -i /tmp/${identifier}.mp4 -vf "${sp}" /tmp/${identifier}-crop.mp4`, (error) => {
