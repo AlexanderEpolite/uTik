@@ -1,4 +1,4 @@
-import {exec, execFile, spawnSync} from "child_process";
+import {exec, spawnSync} from "child_process";
 import {statSync} from "fs";
 import {Worker} from "discord-rose";
 
