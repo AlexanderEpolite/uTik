@@ -33,7 +33,7 @@ export default class Downloader {
                 }
                 
                 if(crop) {
-                    const command = "ffmpeg -i input -t 1 -vf cropdetect -f null - 2>&1 | awk '/crop/ { print $NF }' | tail -1";
+                    const command = `ffmpeg -i /tmp/${identifier} -t 1 -vf cropdetect -f null - 2>&1 | awk '/crop/ { print $NF }' | tail -1`;
                     
                     exec(command, (error, stdout) => {
                         if(error) reject(error);
