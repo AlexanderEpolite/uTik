@@ -1,4 +1,4 @@
-import {exec} from "child_process";
+import {exec, execFile} from "child_process";
 import {statSync} from "fs";
 import {Worker} from "discord-rose";
 
@@ -33,9 +33,7 @@ export default class Downloader {
                 }
                 
                 if(crop) {
-                    const command = `ffmpeg -i /tmp/${identifier} -t 1 -vf cropdetect -f null - | awk '/crop/ { print $NF }' | tail -1`;
-                    
-                    exec(command, (_error, stdout) => {
+                    execFile("./cropper.bash", [identifier], (_error, stdout) => {
                         
                         //apparently the program exits with an error code on success...
                         
