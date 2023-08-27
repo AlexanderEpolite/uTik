@@ -2,6 +2,7 @@ import {Worker} from "discord-rose";
 import Downloader from "./util/Downloader";
 import {readFileSync} from "fs";
 import checkYTShort from "./util/checkYTShort";
+import {ApplicationCommandOptionType} from "discord-api-types";
 
 const worker = new Worker();
 
@@ -26,8 +27,8 @@ const INSTAGRAM_STORY = /https:\/\/(www\.)?instagram\.com\/stories\/([A-Za-z0-9\
 //https://www.instagram.com/reel/Cp_NdZoPuao
 const INSTAGRAM_VIDEO_POST = /https:\/\/(www\.)?instagram\.com\/reel\/([A-Za-z0-9\-_]){5,30}/;
 
-function download(link: string, channel_id: string, msg_id: string, initial_message_id: string, verb: string) {
-    Downloader.downloadVideo((link as string), initial_message_id, worker, channel_id).then(async (path) => {
+function download(link: string, channel_id: string, msg_id: string, initial_message_id: string, verb: string, crop: boolean) {
+    Downloader.downloadVideo((link as string), initial_message_id, worker, channel_id, crop).then(async (path) => {
         
         await worker.api.messages.delete(channel_id, initial_message_id);
         
@@ -44,25 +45,27 @@ function download(link: string, channel_id: string, msg_id: string, initial_mess
     });
 }
 
-worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
-    
-    if(msg.author.bot) return;
-    
+function matchLink(link: string) {
+    return link.match(REGEX_A)
+        || link.match(REGEX_B)
+        || link.match(REGEX_C)
+        || link.match(YT_SHORT_REGEX)
+        || link.match(INSTAGRAM_STORY)
+        || link.match(INSTAGRAM_VIDEO_POST);
+}
+
+async function checkAndDownload(content: string, channel_id: string, message_id: string, crop: boolean): Promise<boolean> {
     //check if the message contains a 'Tok link (note: the message
     //may contain text before or after the link)
-    const match = msg.content.match(REGEX_A)
-        || msg.content.match(REGEX_B)
-        || msg.content.match(REGEX_C)
-        || msg.content.match(YT_SHORT_REGEX)
-        || msg.content.match(INSTAGRAM_STORY)
-        || msg.content.match(INSTAGRAM_VIDEO_POST);
     
-    if(!match) return;
+    const match = matchLink(content);
+    
+    if(!match) return false;
     
     //get the link
     let link = match[0];
     
-    if(!link) return;
+    if(!link) return false;
     
     if(link.includes("youtube")) {
         
@@ -72,7 +75,8 @@ worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
         }
         
         if(!await checkYTShort(link)) {
-            return await worker.api.messages.send(msg.channel_id, "This does not appear to be a real YouTube Short URL.");
+            await worker.api.messages.send(channel_id, "This does not appear to be a real YouTube Short URL.");
+            return false;
         }
     }
     
@@ -88,15 +92,24 @@ worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
         verb = "de-Tok'd";
     }
     
-    worker.api.messages.send(msg.channel_id, {
+    worker.api.messages.send(channel_id, {
         content: `This video is being ${verb}, please wait a few seconds...`,
     }).then((r) => {
         link = link as string;
-        download(link, r.channel_id, msg.id, r.id, verb);
+        download(link, r.channel_id, message_id, r.id, verb, crop);
     }).catch((reason) => {
         console.log(`could not download: ${reason}`);
     });
     
+    return true;
+    
+}
+
+worker.on("MESSAGE_CREATE", async (msg): Promise<any> => {
+    
+    if(msg.author.bot) return;
+    
+    await checkAndDownload(msg.content, msg.channel_id, msg.id, false);
 });
 
 //public bot invite link
@@ -121,6 +134,34 @@ worker.commands.prefix("/").add({
     interaction: {
         name: "source",
         description: "Get the source code URI",
+    },
+}).add({
+    command: "crop",
+    exec: async (ctx): Promise<any> => {
+        
+        if(!ctx.guild || !ctx.channel) return;
+        
+        const link = ctx.options["link"];
+        
+        await ctx.reply("Processing.  A video will be posted in this channel shortly!");
+        
+        const r = await checkAndDownload(link, ctx.channel.id, ctx.message.id, true);
+        
+        if(!r) {
+            return await worker.api.messages.send(ctx.channel.id, "Unable to download and crop this video :(");
+        }
+    },
+    interaction: {
+        name: "crop",
+        description: "(EXPERIMENTAL): download and auto-crop a video",
+        options: [
+            {
+                name: "link",
+                description: "Link to the video",
+                type: ApplicationCommandOptionType.String,
+                required: true,
+            },
+        ],
     },
 });
 
