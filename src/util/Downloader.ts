@@ -1,4 +1,4 @@
-import {exec, spawnSync} from "child_process";
+import {exec, execFileSync, spawnSync} from "child_process";
 import {statSync} from "fs";
 import {Worker} from "discord-rose";
 
@@ -34,16 +34,17 @@ export default class Downloader {
                 
                 if(crop) {
                     
-                    const sp = spawnSync((require.main?.path + "/cropper.bash"), [identifier]);
+                    const spawnpath = require.main?.path + "/cropper.bash";
+                    console.log(`spawnpath: ${spawnpath}`);
+                    
+                    const sp = execFileSync(spawnpath, [identifier]).toString();
                     
                     //apparently the program exits with an error code on success...
                     // if(error) reject(error);
-                    console.log(`error: ${error}`);
-                    console.log(`stdout: ${sp.stdout}`);
-                    console.log(`stderr: ${sp.stderr}`);
+                    console.log(`out: ${sp}`);
                     
                     worker.api.messages.edit(channel_id, identifier, "Cropping video (this may take a few seconds)");
-                    exec(`ffmpeg -i /tmp/${identifier}.mp4 -vf "${sp.stdout}" /tmp/${identifier}-crop.mp4`, (error) => {
+                    exec(`ffmpeg -i /tmp/${identifier}.mp4 -vf "${sp}" /tmp/${identifier}-crop.mp4`, (error) => {
                         if(error) {
                             reject(error);
                         }
