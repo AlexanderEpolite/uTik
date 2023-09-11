@@ -55,7 +55,7 @@ async function checkAndDownload(content: string, channel_id: string, message_id:
     
     if(link.includes("instagram")) {
         //auto-crop IG links unless the message contains "nocrop"
-        crop = !content.includes("nocrop");
+        crop = content.includes("crop");
         
         //replace /p/ with /reel/.  If this is a normal post, it will not
         //download.  If it is really a video, it will download, but don't
